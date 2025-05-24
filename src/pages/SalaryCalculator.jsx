@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calculator, Download, Share2, Info } from 'lucide-react';
 import SEOHead from '../components/seo/SEOHead';
+import { useLocation } from 'react-router-dom';
 import { useRegion } from '../context/RegionContext';
 import { calculateTax } from '../utils/taxCalculations';
 import SalaryBreakdown from '../components/calculators/SalaryBreakdown';
