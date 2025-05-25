@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Particles from "react-tsparticles";
-import { loadSlim } from "tsparticles-slim"; 
+import { loadSlim } from "tsparticles-slim";
 
 import {
   Calculator, DollarSign, TrendingUp, BarChart3, PiggyBank, CreditCard,
@@ -15,10 +15,13 @@ const dynamicWords = ["Salary", "Taxes", "Budget", "Savings", "Loans", "Future"]
 
 const HomePage = () => {
   const { selectedCountry, countries, formatCurrency: originalFormatCurrency } = useRegion();
-  const countryName = countries[selectedCountry]?.name || 'your region';
+  
+  const staticCountryName = countries[selectedCountry]?.name || 'your region';
   
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [particlesMounted, setParticlesMounted] = useState(false);
+  const [animatedCountryName, setAnimatedCountryName] = useState(staticCountryName);
+  const [currentCountryCycleIndex, setCurrentCountryCycleIndex] = useState(0);
 
   const formatCurrency = useCallback((amount, currencyCodeOverride, options = {}) => {
     if (typeof originalFormatCurrency === 'function') {
@@ -37,12 +40,36 @@ const HomePage = () => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentWordIndex((prevIndex) => (prevIndex + 1) % dynamicWords.length);
-    }, 2800); 
+    }, 2800);
     return () => clearInterval(intervalId);
   }, []);
 
-  const pageTitle = `Master Your Finances in ${countryName} | WageCalculator`;
-  const pageDescription = `Dynamically master your ${dynamicWords.join(', ').toLowerCase()} in ${countryName}. Free financial calculators for salary, tax, savings, and loans worldwide.`;
+  useEffect(() => {
+    const countryNameArray = countries ? Object.values(countries).map(c => c.name) : [];
+    if (countryNameArray.length === 0) {
+      setAnimatedCountryName(staticCountryName);
+      return;
+    }
+    let initialIndex = countryNameArray.indexOf(staticCountryName);
+    if (initialIndex === -1 || staticCountryName === 'your region') {
+      initialIndex = 0;
+    }
+    setAnimatedCountryName(countryNameArray[initialIndex]);
+    setCurrentCountryCycleIndex(initialIndex);
+
+    const countryIntervalId = setInterval(() => {
+      setCurrentCountryCycleIndex(prevIndex => {
+        const nextIndex = (prevIndex + 1) % countryNameArray.length;
+        setAnimatedCountryName(countryNameArray[nextIndex]);
+        return nextIndex;
+      });
+    }, 1000);
+
+    return () => clearInterval(countryIntervalId);
+  }, [countries, staticCountryName]);
+
+  const pageTitle = `Master Your Finances in ${staticCountryName} | WageCalculator`;
+  const pageDescription = `Dynamically master your ${dynamicWords.join(', ').toLowerCase()} in ${staticCountryName}. Free financial calculators for salary, tax, savings, and loans worldwide.`;
   
   const calculators = [
     { title: 'Salary Calculator', description: 'Convert annual, monthly, and hourly wages with tax insights.', icon: DollarSign, href: '/salary-calculator', color: 'bg-sky-500', exampleText: 'Gross Income:', exampleValue: formatCurrency(75000, undefined, {smartDecimals: true}) },
@@ -54,7 +81,7 @@ const HomePage = () => {
   ];
 
   const features = [
-    { icon: Globe, title: 'Global Coverage', description: `Tailored calculations for ${countryName} and 40+ other countries with local tax data.` },
+    { icon: Globe, title: 'Global Coverage', description: `Tailored calculations for ${staticCountryName} and 40+ other countries with local tax data.` },
     { icon: Shield, title: 'Privacy First', description: 'All calculations are processed in your browser. Your financial data is never stored by us.' },
     { icon: Zap, title: 'Constantly Updated', description: 'Tax information and currency exchange rates are regularly updated for maximum accuracy.' },
     { icon: Award, title: 'Reliable & Trusted', description: 'Clear, precise, and dependable tools, recognized by professionals and individuals alike.' },
@@ -62,7 +89,7 @@ const HomePage = () => {
 
   const stats = [
     { label: 'Countries Supported', value: '40+' },
-    { label: 'Accurate Calculators', value: `${calculators.length}` },
+    { label: 'Accurate Calculators', value: `${calculators.length+2}` }, //update to properly reflect total calculators
     { label: 'User Satisfaction', value: '99%' },
     { label: 'Data Points Updated', value: 'Daily' },
   ];
@@ -74,7 +101,7 @@ const HomePage = () => {
   
   const wordAnimation = {
     initial: { opacity: 0, y: 10, rotateX: -90 },
-    animate: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.4, ease: "easeOut" } },
+    animate: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.3, ease: "easeOut" } },
     exit: { opacity: 0, y: -10, rotateX: 90, transition: { duration: 0.3, ease: "easeIn" } },
   };
 
@@ -92,6 +119,7 @@ const HomePage = () => {
     provider: { '@type': 'Organization', name: 'WageCalculator', url: 'https://yourwebsite.com' } 
   };
   
+  // --- RESTORED particlesOptions ---
   const particlesOptions = {
     fpsLimit: 60,
     interactivity: {
@@ -116,6 +144,7 @@ const HomePage = () => {
     },
     detectRetina: true,
   };
+  // --- END RESTORED particlesOptions ---
 
   const customParticlesInit = useCallback(async (engine) => {
     await loadSlim(engine);
@@ -126,18 +155,18 @@ const HomePage = () => {
       <SEOHead
         title={pageTitle}
         description={pageDescription}
-        keywords={`${dynamicWords.join(', ')}, financial calculator, ${countryName}, wage calculator, tax calculator`}
+        keywords={`${dynamicWords.join(', ')}, financial calculator, ${staticCountryName}, wage calculator, tax calculator`}
         structuredData={structuredData}
       />
 
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <section className="gradient-bg text-white relative overflow-hidden min-h-[50vh] md:min-h-[60vh] flex items-center justify-center py-10"> {/* Adjusted min-height slightly */}
+        <section className="gradient-bg text-white relative overflow-hidden min-h-[50vh] md:min-h-[60vh] flex items-center justify-center py-10">
           {particlesMounted && (
             <Particles
               id="tsparticles"
               init={customParticlesInit}
-              options={particlesOptions}
+              options={particlesOptions} // Now uses the fully defined options
               className="absolute inset-0 z-0" 
             />
           )}
@@ -153,7 +182,7 @@ const HomePage = () => {
                 Master Your{' '}
                 <span 
                   className="inline-block relative text-center"
-                  style={{ minWidth: '4ch' }} // Adjust '10ch' based on avg word length of dynamicWords
+                  style={{ minWidth: '5ch' }}
                 >
                   <AnimatePresence mode="wait">
                     <motion.span
@@ -162,14 +191,32 @@ const HomePage = () => {
                       initial="initial"
                       animate="animate"
                       exit="exit"
-                      className="text-yellow-300 inline-block" // No absolute positioning
+                      className="text-yellow-300 inline-block"
                       style={{ perspective: '400px' }} 
                     >
                       {dynamicWords[currentWordIndex]}
                     </motion.span>
                   </AnimatePresence>
                 </span>
-                 {' '}in {countryName}
+                 {' '}in{' '}
+                <span 
+                  className="inline-block relative text-center"
+                  style={{ minWidth: '15ch' }}
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={animatedCountryName}
+                      variants={wordAnimation}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      className="inline-block"
+                      style={{ perspective: '400px' }} 
+                    >
+                      {animatedCountryName}
+                    </motion.span>
+                  </AnimatePresence>
+                </span>
               </h1>
               <p className="text-lg md:text-xl mb-10 text-blue-100 max-w-3xl mx-auto text-balance">
                 Unlock financial clarity. Our free, precise calculators for salary, tax, savings, and loans are tailored for you.
