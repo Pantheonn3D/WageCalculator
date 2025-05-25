@@ -9,6 +9,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import RouteChangeTracker from './components/RouteChangeTracker';
+import ScrollToTop from './utils/ScrollToTop'; // Import the new component
 import SalaryCalculator from './pages/SalaryCalculator';
 import HourlyCalculator from './pages/HourlyCalculator';
 import TaxCalculator from './pages/TaxCalculator';
@@ -19,6 +20,7 @@ import CurrencyConverter from './pages/CurrencyConverter';
 import ComparisonTool from './pages/ComparisonTool';
 import FinancialGuides from './pages/FinancialGuides';
 import GuideDetailPage from './pages/GuideDetailPage';
+import AllCalculators from './pages/AllCalculators';
 import { RegionProvider } from './context/RegionContext';
 
 // Import Legal Pages
@@ -50,6 +52,7 @@ function AppRoutes() {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
+      <ScrollToTop />
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
         <Route path="/salary-calculator" element={<SalaryCalculator />} />
@@ -61,6 +64,7 @@ function AppRoutes() {
           path="/retirement-calculator"
           element={<RetirementCalculator />}
         />
+        <Route path="/all-calculators" element={<AllCalculators />} />
         <Route path="/currency-converter" element={<CurrencyConverter />} />
         <Route path="/comparison-tool" element={<ComparisonTool />} />
         <Route path="/financial-guides" element={<FinancialGuides />} />

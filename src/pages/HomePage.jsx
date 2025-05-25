@@ -1,175 +1,192 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Particles from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim"; 
+
 import {
-  Calculator,
-  DollarSign,
-  TrendingUp,
-  BarChart3,
-  PiggyBank,
-  CreditCard,
-  Users,
-  Globe,
-  Shield,
-  Zap,
-  Award,
-  Clock,
+  Calculator, DollarSign, TrendingUp, BarChart3, PiggyBank, CreditCard,
+  Globe, Shield, Zap, Award, ChevronRight,
 } from 'lucide-react';
 import SEOHead from '../components/seo/SEOHead';
 import { useRegion } from '../context/RegionContext';
 
-const HomePage = () => {
-  const { selectedCountry, countries, formatCurrency } = useRegion();
-  const countryName = countries[selectedCountry]?.name || 'your region';
+const dynamicWords = ["Salary", "Taxes", "Budget", "Savings", "Loans", "Future"];
 
+const HomePage = () => {
+  const { selectedCountry, countries, formatCurrency: originalFormatCurrency } = useRegion();
+  const countryName = countries[selectedCountry]?.name || 'your region';
+  
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [particlesMounted, setParticlesMounted] = useState(false);
+
+  const formatCurrency = useCallback((amount, currencyCodeOverride, options = {}) => {
+    if (typeof originalFormatCurrency === 'function') {
+      return originalFormatCurrency(amount, currencyCodeOverride, options);
+    }
+    const code = currencyCodeOverride || countries[selectedCountry]?.currency || '$';
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount)) return `${code}0.00`;
+    return `${code}${numAmount.toFixed(2)}`;
+  }, [originalFormatCurrency, selectedCountry, countries]);
+
+  useEffect(() => {
+    setParticlesMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentWordIndex((prevIndex) => (prevIndex + 1) % dynamicWords.length);
+    }, 2800); 
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const pageTitle = `Master Your Finances in ${countryName} | WageCalculator`;
+  const pageDescription = `Dynamically master your ${dynamicWords.join(', ').toLowerCase()} in ${countryName}. Free financial calculators for salary, tax, savings, and loans worldwide.`;
+  
   const calculators = [
-    {
-      title: 'Salary Calculator',
-      description:
-        'Convert between annual, monthly, and hourly wages with tax calculations',
-      icon: DollarSign,
-      href: '/salary-calculator',
-      color: 'bg-blue-500',
-      example: formatCurrency(75000),
-    },
-    {
-      title: 'Hourly Calculator',
-      description:
-        'Calculate annual income from hourly wages including overtime',
-      icon: TrendingUp,
-      href: '/hourly-calculator',
-      color: 'bg-green-500',
-      example: formatCurrency(25) + '/hr',
-    },
-    {
-      title: 'Tax Calculator',
-      description: 'Estimate federal, state, and local taxes on your income',
-      icon: BarChart3,
-      href: '/tax-calculator',
-      color: 'bg-purple-500',
-      example: 'Federal + State',
-    },
-    {
-      title: 'Savings Calculator',
-      description:
-        'Plan your savings goals with compound interest calculations',
-      icon: PiggyBank,
-      href: '/savings-calculator',
-      color: 'bg-pink-500',
-      example: '10% annually',
-    },
-    {
-      title: 'Loan Calculator',
-      description: 'Calculate monthly payments and total interest for loans',
-      icon: CreditCard,
-      href: '/loan-calculator',
-      color: 'bg-orange-500',
-      example: '4.5% APR',
-    },
-    {
-      title: 'Retirement Calculator',
-      description: 'Plan for retirement with investment growth projections',
-      icon: TrendingUp,
-      href: '/retirement-calculator',
-      color: 'bg-indigo-500',
-      example: '401(k) + IRA',
-    },
+    { title: 'Salary Calculator', description: 'Convert annual, monthly, and hourly wages with tax insights.', icon: DollarSign, href: '/salary-calculator', color: 'bg-sky-500', exampleText: 'Gross Income:', exampleValue: formatCurrency(75000, undefined, {smartDecimals: true}) },
+    { title: 'Hourly Calculator', description: 'Estimate total earnings from hourly rates, including overtime.', icon: TrendingUp, href: '/hourly-calculator', color: 'bg-emerald-500', exampleText: 'Rate:', exampleValue: `${formatCurrency(25, undefined, {smartDecimals: true})}/hr` },
+    { title: 'Tax Calculator', description: 'Estimate income taxes based on current regulations.', icon: BarChart3, href: '/tax-calculator', color: 'bg-violet-500', exampleText: 'Effective Rate:', exampleValue: '~22%' },
+    { title: 'Savings Calculator', description: 'Project savings growth with compound interest scenarios.', icon: PiggyBank, href: '/savings-calculator', color: 'bg-pink-500', exampleText: 'Goal:', exampleValue: formatCurrency(10000, undefined, {smartDecimals: true}) },
+    { title: 'Loan Calculator', description: 'Understand monthly payments and total loan interest.', icon: CreditCard, href: '/loan-calculator', color: 'bg-amber-500', exampleText: 'Mortgage:', exampleValue: `${formatCurrency(1850, undefined, {smartDecimals: true})}/mo` },
+    { title: 'Retirement Calculator', description: 'Plan for retirement by projecting investment growth.', icon: TrendingUp, href: '/retirement-calculator', color: 'bg-indigo-500', exampleText: 'Portfolio:', exampleValue: formatCurrency(500000, undefined, {smartDecimals: true}) },
   ];
 
   const features = [
-    {
-      icon: Globe,
-      title: 'Global Coverage',
-      description:
-        'Accurate calculations for 40+ countries with local tax rates and regulations',
-    },
-    {
-      icon: Shield,
-      title: 'Privacy First',
-      description:
-        'All calculations happen in your browser. We never store your financial data',
-    },
-    {
-      icon: Zap,
-      title: 'Real-time Updates',
-      description:
-        'Tax rates and exchange rates updated regularly for maximum accuracy',
-    },
-    {
-      icon: Award,
-      title: 'Professional Grade',
-      description:
-        'Used by HR professionals, accountants, and financial advisors worldwide',
-    },
+    { icon: Globe, title: 'Global Coverage', description: `Tailored calculations for ${countryName} and 40+ other countries with local tax data.` },
+    { icon: Shield, title: 'Privacy First', description: 'All calculations are processed in your browser. Your financial data is never stored by us.' },
+    { icon: Zap, title: 'Constantly Updated', description: 'Tax information and currency exchange rates are regularly updated for maximum accuracy.' },
+    { icon: Award, title: 'Reliable & Trusted', description: 'Clear, precise, and dependable tools, recognized by professionals and individuals alike.' },
   ];
 
   const stats = [
     { label: 'Countries Supported', value: '40+' },
-    { label: 'Calculations Performed', value: '2M+' },
+    { label: 'Accurate Calculators', value: `${calculators.length}` },
     { label: 'User Satisfaction', value: '99%' },
-    { label: 'Years of Service', value: '5+' },
+    { label: 'Data Points Updated', value: 'Daily' },
   ];
+
+  const fadeInY = (delay = 0, duration = 0.5) => ({
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration, delay } },
+  });
+  
+  const wordAnimation = {
+    initial: { opacity: 0, y: 10, rotateX: -90 },
+    animate: { opacity: 1, y: 0, rotateX: 0, transition: { duration: 0.4, ease: "easeOut" } },
+    exit: { opacity: 0, y: -10, rotateX: 90, transition: { duration: 0.3, ease: "easeIn" } },
+  };
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'WageCalculator',
-    description:
-      'Free financial calculators for salary, tax, savings, and loan calculations worldwide',
-    url: 'https://wagecalculator.com',
+    description: pageDescription,
+    url: 'https://yourwebsite.com', 
     applicationCategory: 'FinanceApplication',
-    operatingSystem: 'Web Browser',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      ratingCount: '12847',
-    },
+    operatingSystem: 'All', 
+    featureList: calculators.map(calc => calc.title),
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, 
+    aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '13000' }, 
+    provider: { '@type': 'Organization', name: 'WageCalculator', url: 'https://yourwebsite.com' } 
   };
+  
+  const particlesOptions = {
+    fpsLimit: 60,
+    interactivity: {
+      events: {
+        onHover: { enable: true, mode: "grab" },
+        onClick: { enable: true, mode: "push" },
+      },
+      modes: {
+        grab: { distance: 150, links: { opacity: 0.3, color: "#ffffff" } },
+        push: { quantity: 4 },
+      },
+    },
+    particles: {
+      color: { value: "rgba(255,255,255,0.6)" }, 
+      links: { color: "rgba(255,255,255,0.25)", distance: 150, enable: true, opacity: 0.2, width: 1 },
+      collisions: { enable: false },
+      move: { direction: "none", enable: true, outModes: { default: "out" }, random: true, speed: 0.4, straight: false },
+      number: { density: { enable: true, area: 900 }, value: 35 }, 
+      opacity: { value: {min: 0.1, max: 0.5} }, 
+      shape: { type: "circle" },
+      size: { value: { min: 1, max: 3 } },
+    },
+    detectRetina: true,
+  };
+
+  const customParticlesInit = useCallback(async (engine) => {
+    await loadSlim(engine);
+  }, []);
 
   return (
     <>
       <SEOHead
-        title={`Free Financial Calculators for ${countryName}`}
-        description={`Calculate salaries, taxes, savings, and loans with our comprehensive financial calculators. Accurate calculations for ${countryName} and 40+ countries worldwide.`}
-        keywords="salary calculator, wage calculator, tax calculator, savings calculator, loan calculator, financial calculator"
+        title={pageTitle}
+        description={pageDescription}
+        keywords={`${dynamicWords.join(', ')}, financial calculator, ${countryName}, wage calculator, tax calculator`}
         structuredData={structuredData}
       />
 
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <section className="gradient-bg text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="gradient-bg text-white relative overflow-hidden min-h-[50vh] md:min-h-[60vh] flex items-center justify-center py-10"> {/* Adjusted min-height slightly */}
+          {particlesMounted && (
+            <Particles
+              id="tsparticles"
+              init={customParticlesInit}
+              options={particlesOptions}
+              className="absolute inset-0 z-0" 
+            />
+          )}
+          
+          <div className="max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              variants={fadeInY(0, 0.8)}
+              initial="initial"
+              animate="animate"
               className="text-center"
             >
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 text-balance">
-                Financial Calculators for {countryName}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[68px] font-extrabold mb-6 tracking-tighter text-balance">
+                Master Your{' '}
+                <span 
+                  className="inline-block relative text-center"
+                  style={{ minWidth: '6ch' }} // Adjust '10ch' based on avg word length of dynamicWords
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={dynamicWords[currentWordIndex]}
+                      variants={wordAnimation}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      className="text-yellow-300 inline-block" // No absolute positioning
+                      style={{ perspective: '400px' }} 
+                    >
+                      {dynamicWords[currentWordIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </span>
+                 {' '}in {countryName}
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto text-balance">
-                Calculate salaries, taxes, savings, and more with our
-                comprehensive suite of financial tools. Accurate, fast, and free
-                for all countries.
+              <p className="text-lg md:text-xl mb-10 text-blue-100 max-w-3xl mx-auto text-balance">
+                Unlock financial clarity. Our free, precise calculators for salary, tax, savings, and loans are tailored for you.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link
-                  to="/salary-calculator"
-                  className="bg-white text-primary-700 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  to="/all-calculators"
+                  className="bg-white text-primary-700 px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-gray-200 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-300"
                 >
-                  Start Calculating
+                  Explore All Calculators
                 </Link>
                 <Link
                   to="/financial-guides"
-                  className="glass-effect text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/20 transition-all duration-200"
+                  className="glass-effect text-white px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-white/25 transition-all duration-200 flex items-center group focus:outline-none focus:ring-4 focus:ring-blue-300"
                 >
-                  Learn More
+                  Read Our Guides
+                  <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </motion.div>
@@ -177,21 +194,21 @@ const HomePage = () => {
         </section>
 
         {/* Stats Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <section className="py-16 lg:py-16 bg-white border-b border-gray-200">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
               {stats.map((stat, index) => (
                 <motion.div
                   key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="text-center"
+                  variants={fadeInY(index * 0.1, 0.5)}
+                  initial="initial"
+                  animate="animate"
+                  className="text-center p-4 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
-                  <div className="text-3xl md:text-4xl font-bold text-primary-600 mb-2">
+                  <div className="text-3xl md:text-4xl font-bold text-primary-600 mb-1 group-hover:scale-110 transition-transform duration-300">
                     {stat.value}
                   </div>
-                  <div className="text-gray-600 font-medium">{stat.label}</div>
+                  <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -199,19 +216,19 @@ const HomePage = () => {
         </section>
 
         {/* Calculators Grid */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 lg:py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              variants={fadeInY(0, 0.7)}
+              initial="initial"
+              animate="animate"
               className="text-center mb-16"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Financial Calculators
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
+                Our Suite of Financial Tools
               </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Everything you need to make informed financial decisions
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                From income insights to loan planning, we have a calculator for every need.
               </p>
             </motion.div>
 
@@ -221,74 +238,94 @@ const HomePage = () => {
                 return (
                   <motion.div
                     key={calc.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    variants={fadeInY(0.2 + index * 0.1, 0.6)}
+                    initial="initial"
+                    animate="animate"
+                    className="h-full"
                   >
                     <Link
                       to={calc.href}
-                      className="calculator-card group hover:scale-105 transform transition-all duration-300 block"
+                      className="group flex flex-col justify-between h-full p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 bg-white hover:border-primary-300 border-2 border-transparent transform hover:-translate-y-1.5"
                     >
-                      <div className="flex items-start space-x-4">
-                        <div className={`${calc.color} p-3 rounded-lg`}>
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+                      <div>
+                        <div className="flex items-start space-x-4 mb-4">
+                          <div className={`${calc.color} p-3.5 rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+                            <Icon className="w-7 h-7 text-white" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-800 group-hover:text-primary-600 transition-colors pt-1">
                             {calc.title}
                           </h3>
-                          <p className="text-gray-600 mb-3 leading-relaxed">
-                            {calc.description}
-                          </p>
-                          <div className="text-sm font-medium text-primary-600">
-                            Example: {calc.example}
-                          </div>
                         </div>
+                        <p className="text-gray-600 text-sm mb-4 leading-relaxed min-h-[3.5rem]">
+                          {calc.description}
+                        </p>
+                      </div>
+                      <div className="text-xs font-medium text-gray-500 border-t border-gray-200 pt-3 mt-auto flex justify-between items-center">
+                        <div className="min-h-[1.5em]"> 
+                            <span className="text-gray-400">{calc.exampleText}</span> {calc.exampleValue}
+                        </div>
+                        <span className="text-primary-600 group-hover:text-primary-700 font-semibold inline-flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Calculate
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                        </span>
                       </div>
                     </Link>
                   </motion.div>
                 );
               })}
             </div>
+             <motion.div
+                variants={fadeInY(0.5, 0.7)}
+                initial="initial"
+                animate="animate"
+                className="text-center mt-16"
+             >
+                <Link
+                  to="/all-calculators" 
+                  className="text-primary-600 hover:text-primary-700 font-semibold group inline-flex items-center text-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md px-2 py-1"
+                >
+                  View All Calculators
+                  <ChevronRight className="w-5 h-5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+            </motion.div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section className="py-20 bg-white">
+        <section className="py-20 lg:py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              variants={fadeInY(0, 0.7)}
+              initial="initial"
+              animate="animate"
               className="text-center mb-16"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
                 Why Choose WageCalculator?
               </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Trusted by millions worldwide for accurate financial
-                calculations
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                Empowering your financial decisions with tools built on trust, accuracy, and privacy.
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
                   <motion.div
                     key={feature.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="text-center"
+                    variants={fadeInY(0.2 + index * 0.1, 0.6)}
+                    initial="initial"
+                    animate="animate"
+                    className="text-center p-6 bg-gray-50 rounded-xl hover:shadow-lg transition-shadow group"
                   >
-                    <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Icon className="w-8 h-8 text-primary-600" />
+                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-5 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className="w-8 h-8" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-sm text-gray-600 leading-relaxed">
                       {feature.description}
                     </p>
                   </motion.div>
@@ -299,32 +336,32 @@ const HomePage = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 gradient-bg text-white">
+        <section className="py-20 lg:py-24 gradient-bg text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              variants={fadeInY(0, 0.8)}
+              initial="initial"
+              animate="animate"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Ready to Take Control of Your Finances?
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 tracking-tight">
+                Ready to Master Your Finances?
               </h2>
-              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Join millions of users who trust WageCalculator for their
-                financial planning needs.
+              <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+                Get started with our free, powerful tools. Join millions making smarter financial choices.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   to="/salary-calculator"
-                  className="bg-white text-primary-700 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="bg-white text-primary-700 px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-gray-200 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary-300"
                 >
                   Calculate Your Salary
                 </Link>
                 <Link
                   to="/comparison-tool"
-                  className="glass-effect text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/20 transition-all duration-200"
+                  className="glass-effect text-white px-8 py-3.5 rounded-lg font-semibold text-lg hover:bg-white/25 transition-all duration-200 flex items-center group focus:outline-none focus:ring-4 focus:ring-blue-300"
                 >
-                  Compare Offers
+                  Compare Financial Offers
+                  <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </motion.div>
