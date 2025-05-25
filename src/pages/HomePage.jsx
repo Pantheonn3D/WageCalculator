@@ -153,7 +153,7 @@ const HomePage = () => {
                 Master Your{' '}
                 <span 
                   className="inline-block relative text-center"
-                  style={{ minWidth: '6ch' }} // Adjust '10ch' based on avg word length of dynamicWords
+                  style={{ minWidth: '4ch' }} // Adjust '10ch' based on avg word length of dynamicWords
                 >
                   <AnimatePresence mode="wait">
                     <motion.span
