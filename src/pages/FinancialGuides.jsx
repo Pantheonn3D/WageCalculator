@@ -9,18 +9,18 @@ import { Link } from 'react-router-dom';
 import SEOHead from '../components/seo/SEOHead';
 
 // Import all guide articles (these should now have a 'slug' property)
-import { salaryBenefitsGuide } from './guides/salaryBenefitsGuide';
-import { budgetingGuide } from './guides/budgetingGuide';
-import { debtManagementGuide } from './guides/debtManagementGuide';
-import { investingBasicsGuide } from './guides/investingBasicsGuide';
-import { insuranceGuide } from './guides/insuranceGuide';
-import { homeBuyingGuide } from './guides/homeBuyingGuide';
-import { taxPlanningGuide } from './guides/taxPlanningGuide';
-import { retirementPlanningGuide } from './guides/retirementPlanningGuide';
-import { studentLoansGuide } from './guides/studentLoansGuide';
-import { emergencyFundGuide } from './guides/emergencyFundGuide';
-import { creditScoreGuide } from './guides/creditScoreGuide';
-import { realEstateInvestingGuide } from './guides/realEstateInvestingGuide';
+import { salaryBenefitsGuide } from './guides/salaryBenefitsGuide.js';
+import { budgetingGuide } from './guides/budgetingGuide.js';
+import { debtManagementGuide } from './guides/debtManagementGuide.js';
+import { investingBasicsGuide } from './guides/investingBasicsGuide.js';
+import { insuranceGuide } from './guides/insuranceGuide.js';
+import { homeBuyingGuide } from './guides/homeBuyingGuide.js';
+import { taxPlanningGuide } from './guides/taxPlanningGuide.js';
+import { retirementPlanningGuide } from './guides/retirementPlanningGuide.js';
+import { studentLoansGuide } from './guides/studentLoansGuide.js';
+import { emergencyFundGuide } from './guides/emergencyFundGuide.js';
+import { creditScoreGuide } from './guides/creditScoreGuide.js';
+import { realEstateInvestingGuide } from './guides/realEstateInvestingGuide.js';
 
 // Combine all guide articles - THIS IS EXPORTED for GuideDetailPage.jsx
 export const guideArticles = [
