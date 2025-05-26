@@ -1,7 +1,7 @@
 // app.jsx
 
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom'; // Removed BrowserRouter as Router, assuming it's in index.js or main.jsx
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactGA from 'react-ga4';
 
@@ -9,7 +9,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import RouteChangeTracker from './components/RouteChangeTracker';
-import ScrollToTop from './utils/ScrollToTop'; // Import the new component
+import ScrollToTop from './utils/ScrollToTop';
 import SalaryCalculator from './pages/SalaryCalculator';
 import HourlyCalculator from './pages/HourlyCalculator';
 import TaxCalculator from './pages/TaxCalculator';
@@ -31,23 +31,17 @@ import TermsOfServicePage from './pages/legal/TermsOfServicePage';
 
 // --- GA CONFIGURATION ---
 let gaMeasurementId;
-const hardcodedGaId = "G-3B9E8XGDPP"; // Your hardcoded ID as a fallback or for non-Vite envs
-const placeholderGaId = "G-XXXXXXXXXX"; // A generic placeholder to check against
+const hardcodedGaId = "G-3B9E8XGDPP";
+const placeholderGaId = "G-XXXXXXXXXX";
 
-// Check if running in a Vite environment and access Vite-specific env var
 if (typeof import.meta !== 'undefined' && import.meta.env) {
   gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
-  // console.log("Vite env detected, VITE_GA_MEASUREMENT_ID:", gaMeasurementId);
 }
 
-// Fallback to hardcoded ID if Vite env var is not set or not in Vite env
 if (!gaMeasurementId) {
   gaMeasurementId = hardcodedGaId;
-  // console.log("Falling back to hardcoded GA ID:", gaMeasurementId);
 }
 
-
-// AppRoutes component remains the same
 function AppRoutes() {
   const location = useLocation();
   return (
@@ -68,7 +62,16 @@ function AppRoutes() {
         <Route path="/currency-converter" element={<CurrencyConverter />} />
         <Route path="/comparison-tool" element={<ComparisonTool />} />
         <Route path="/financial-guides" element={<FinancialGuides />} />
-        <Route path="/financial-guides/:guideId" element={<GuideDetailPage />} />
+        {/* 
+          ***********************************
+          *** THIS IS THE IMPORTANT CHANGE ***
+          ***********************************
+        */}
+        <Route path="/financial-guides/:guideSlug" element={<GuideDetailPage />} />
+        {/* 
+          ***********************************
+          ***********************************
+        */}
         <Route path="/cookies" element={<CookiePolicyPage />} />
         <Route path="/disclaimer" element={<DisclaimerPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
@@ -82,12 +85,10 @@ function App() {
   const [gaInitialized, setGaInitialized] = useState(false);
 
   useEffect(() => {
-    // Ensure gaMeasurementId is a valid ID and not a placeholder or undefined
     if (gaMeasurementId && gaMeasurementId !== placeholderGaId && !gaMeasurementId.startsWith("G-XXX")) {
       try {
         ReactGA.initialize(gaMeasurementId, {
-          // Example: Enable test mode in development
-          // testMode: (typeof import.meta !== 'undefined' && import.meta.env.DEV) // Vite way to check for dev mode
+          // testMode: (typeof import.meta !== 'undefined' && import.meta.env.DEV)
         });
         console.log(`GA Initialized with Measurement ID: ${gaMeasurementId}`);
         setGaInitialized(true);
@@ -101,15 +102,21 @@ function App() {
       }
       setGaInitialized(false);
     }
-  }, []); // Empty dependency array means this runs once when App mounts
+  }, []);
 
   return (
+    // BrowserRouter (or Router) should wrap this App component,
+    // typically in your main.jsx or index.js file.
+    // If it's not there, you would need to add <Router> here.
+    // Example: import { BrowserRouter as Router } from 'react-router-dom';
+    // and then wrap <RegionProvider> with <Router>.
+    // But usually, it's done at the root of the application.
     <RegionProvider>
       {gaInitialized && <RouteChangeTracker />}
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
         <main className="flex-grow">
-          <AppRoutes />
+          <AppRoutes /> {/* This component contains your Routes */}
         </main>
         <Footer />
       </div>
