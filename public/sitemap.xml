@@ -4,140 +4,167 @@
   <!-- Main Pages -->
   <url>
     <loc>https://wagecalculator.online/</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/all-calculators</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/comparison-tool</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/currency-converter</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/financial-guides</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/hourly-calculator</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/loan-calculator</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/retirement-calculator</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/salary-calculator</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/savings-calculator</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/tax-calculator</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
-  <!-- Financial Guide Detail Pages -->
+  <!-- Financial Guide Detail Pages - UPDATED WITH SLUGS -->
   <url>
-    <loc>https://wagecalculator.online/financial-guides/1</loc>
+    <loc>https://wagecalculator.online/financial-guides/understanding-your-salary-and-benefits-package</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/2</loc>
+    <loc>https://wagecalculator.online/financial-guides/creating-a-personal-budget-that-works</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/3</loc>
+    <loc>https://wagecalculator.online/financial-guides/managing-debt-strategies-for-paying-off-loans</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/4</loc>
+    <loc>https://wagecalculator.online/financial-guides/introduction-to-investing-for-beginners</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/5</loc>
+    <loc>https://wagecalculator.online/financial-guides/understanding-insurance-what-coverage-do-you-need</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/6</loc>
+    <loc>https://wagecalculator.online/financial-guides/buying-your-first-home-a-complete-guide</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/7</loc>
+    <loc>https://wagecalculator.online/financial-guides/tax-planning-strategies-to-minimize-your-bill</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/8</loc>
+    <loc>https://wagecalculator.online/financial-guides/planning-for-retirement-start-at-any-age</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/9</loc>
+    <loc>https://wagecalculator.online/financial-guides/managing-student-loans-repayment-options</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/10</loc>
+    <loc>https://wagecalculator.online/financial-guides/building-an-emergency-fund-your-financial-safety-net</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/11</loc>
+    <loc>https://wagecalculator.online/financial-guides/understanding-credit-scores-and-how-to-improve-them</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wagecalculator.online/financial-guides/12</loc>
+    <loc>https://wagecalculator.online/financial-guides/investing-in-real-estate-options-for-every-budget</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
 
   <!-- Legal Pages -->
   <url>
     <loc>https://wagecalculator.online/cookies</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/disclaimer</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/privacy</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://wagecalculator.online/terms</loc>
+    <lastmod>2025-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
