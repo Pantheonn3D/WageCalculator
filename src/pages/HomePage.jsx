@@ -1,17 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// src/pages/HomePage.jsx
+
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Particles from "react-tsparticles";
-import { loadSlim } from "tsparticles-slim";
+// REMOVED: import Particles from "react-tsparticles"; 
+// REMOVED: import { loadSlim } from "tsparticles-slim"; // Will be dynamically imported
 
 import {
-  Calculator, DollarSign, TrendingUp, BarChart3, PiggyBank, CreditCard,
+  // Calculator, // Not used
+  DollarSign, TrendingUp, BarChart3, PiggyBank, CreditCard,
   Globe, Shield, Zap, Award, ChevronRight,
+  // Mail, // Not used
 } from 'lucide-react';
 import SEOHead from '../components/seo/SEOHead';
 import { useRegion } from '../context/RegionContext';
 
 const dynamicWords = ["Salary", "Taxes", "Budget", "Savings", "Loans", "Future"];
+
+// Lazy load the Particles component
+const LazyLoadedParticles = React.lazy(() => import('react-tsparticles'));
 
 const HomePage = () => {
   const { selectedCountry, countries, formatCurrency: originalFormatCurrency } = useRegion();
@@ -19,9 +26,12 @@ const HomePage = () => {
   const staticCountryName = countries[selectedCountry]?.name || 'your region';
   
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [particlesMounted, setParticlesMounted] = useState(false);
+  // const [particlesMounted, setParticlesMounted] = useState(false); // Can be removed if showParticles is sufficient
   const [animatedCountryName, setAnimatedCountryName] = useState(staticCountryName);
   const [currentCountryCycleIndex, setCurrentCountryCycleIndex] = useState(0);
+
+  // State to control delayed rendering of particles
+  const [showParticles, setShowParticles] = useState(false);
 
   const formatCurrency = useCallback((amount, currencyCodeOverride, options = {}) => {
     if (typeof originalFormatCurrency === 'function') {
@@ -33,8 +43,18 @@ const HomePage = () => {
     return `${code}${numAmount.toFixed(2)}`;
   }, [originalFormatCurrency, selectedCountry, countries]);
 
+  // This useEffect for particlesMounted might no longer be needed
+  // if showParticles dictates when to attempt rendering particles.
+  // useEffect(() => {
+  //   setParticlesMounted(true);
+  // }, []);
+
+  // Effect to delay showing particles
   useEffect(() => {
-    setParticlesMounted(true);
+    const timer = setTimeout(() => {
+      setShowParticles(true);
+    }, 2000); // Delay by 2 seconds, adjust as needed
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -52,18 +72,24 @@ const HomePage = () => {
     }
     let initialIndex = countryNameArray.indexOf(staticCountryName);
     if (initialIndex === -1 || staticCountryName === 'your region') {
-      initialIndex = 0;
+      initialIndex = 0; 
     }
-    setAnimatedCountryName(countryNameArray[initialIndex]);
-    setCurrentCountryCycleIndex(initialIndex);
+    if (initialIndex >= 0 && initialIndex < countryNameArray.length) {
+        setAnimatedCountryName(countryNameArray[initialIndex]);
+        setCurrentCountryCycleIndex(initialIndex);
+    } else if (countryNameArray.length > 0) {
+        setAnimatedCountryName(countryNameArray[0]);
+        setCurrentCountryCycleIndex(0);
+    }
 
     const countryIntervalId = setInterval(() => {
       setCurrentCountryCycleIndex(prevIndex => {
+        if (countryNameArray.length === 0) return prevIndex;
         const nextIndex = (prevIndex + 1) % countryNameArray.length;
         setAnimatedCountryName(countryNameArray[nextIndex]);
         return nextIndex;
       });
-    }, 1000);
+    }, 3000); // Slightly increased interval
 
     return () => clearInterval(countryIntervalId);
   }, [countries, staticCountryName]);
@@ -89,7 +115,7 @@ const HomePage = () => {
 
   const stats = [
     { label: 'Countries Supported', value: '40+' },
-    { label: 'Accurate Calculators', value: `${calculators.length+2}` }, //update to properly reflect total calculators
+    { label: 'Accurate Calculators', value: `${calculators.length+2}` },
     { label: 'User Satisfaction', value: '99%' },
     { label: 'Data Points Updated', value: 'Daily' },
   ];
@@ -110,16 +136,15 @@ const HomePage = () => {
     '@type': 'WebApplication',
     name: 'WageCalculator',
     description: pageDescription,
-    url: 'https://yourwebsite.com', 
+    url: 'https://yourwebsite.com', // Replace with your actual domain
     applicationCategory: 'FinanceApplication',
     operatingSystem: 'All', 
     featureList: calculators.map(calc => calc.title),
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, 
-    aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '13000' }, 
-    provider: { '@type': 'Organization', name: 'WageCalculator', url: 'https://yourwebsite.com' } 
+    aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '13000' }, // Example values
+    provider: { '@type': 'Organization', name: 'WageCalculator', url: 'https://yourwebsite.com' } // Replace
   };
   
-  // --- RESTORED particlesOptions ---
   const particlesOptions = {
     fpsLimit: 60,
     interactivity: {
@@ -144,9 +169,10 @@ const HomePage = () => {
     },
     detectRetina: true,
   };
-  // --- END RESTORED particlesOptions ---
 
   const customParticlesInit = useCallback(async (engine) => {
+    // This line is crucial for loading the slim version of the tsparticles engine
+    const { loadSlim } = await import("tsparticles-slim");
     await loadSlim(engine);
   }, []);
 
@@ -162,13 +188,16 @@ const HomePage = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <section className="gradient-bg text-white relative overflow-hidden min-h-[50vh] md:min-h-[60vh] flex items-center justify-center py-10">
-          {particlesMounted && (
-            <Particles
-              id="tsparticles"
-              init={customParticlesInit}
-              options={particlesOptions} // Now uses the fully defined options
-              className="absolute inset-0 z-0" 
-            />
+          {/* Conditionally render Particles based on showParticles state */}
+          {showParticles && (
+            <Suspense fallback={<div className="absolute inset-0 z-0" style={{backgroundColor: 'transparent'}} /> /* Minimal or no fallback */}>
+              <LazyLoadedParticles
+                id="tsparticles"
+                init={customParticlesInit} // Pass the init function to load the engine
+                options={particlesOptions}
+                className="absolute inset-0 z-0" 
+              />
+            </Suspense>
           )}
           
           <div className="max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -178,11 +207,11 @@ const HomePage = () => {
               animate="animate"
               className="text-center"
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[68px] font-extrabold mb-6 tracking-tighter text-balance">
-                Master Your{' '}
-                <span 
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-[68px] font-extrabold mb-6 tracking-tighter text-balance">
+                Master Your{''}
+                <span
                   className="inline-block relative text-center"
-                  style={{ minWidth: '5ch' }}
+                  style={{ minWidth: '5ch' }} // Or adjust based on your longest dynamicWord
                 >
                   <AnimatePresence mode="wait">
                     <motion.span
@@ -192,26 +221,28 @@ const HomePage = () => {
                       animate="animate"
                       exit="exit"
                       className="text-yellow-300 inline-block"
-                      style={{ perspective: '400px' }} 
+                      style={{ perspective: '400px' }}
                     >
                       {dynamicWords[currentWordIndex]}
                     </motion.span>
                   </AnimatePresence>
                 </span>
-                 {' '}in{' '}
-                <span 
+                 {''}in{''}
+                <span
                   className="inline-block relative text-center"
-                  style={{ minWidth: '15ch' }}
+                  // Dynamically calculate or set a generous minWidth for country names
+                  // 'ch' unit is good as it's based on character width
+                  style={{ minWidth: '20ch' }} // RESTORED & ADJUSTED - pick a value that fits your longest country name
                 >
                   <AnimatePresence mode="wait">
                     <motion.span
-                      key={animatedCountryName}
+                      key={animatedCountryName} // Keyed by the country name itself
                       variants={wordAnimation}
                       initial="initial"
                       animate="animate"
                       exit="exit"
-                      className="inline-block"
-                      style={{ perspective: '400px' }} 
+                      className="inline-block" // Removed text-yellow-300 if not desired for country
+                      style={{ perspective: '400px' }}
                     >
                       {animatedCountryName}
                     </motion.span>
@@ -262,7 +293,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Calculators Grid */}
+        {/* Calculators Grid Section */}
         <section className="py-20 lg:py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
