@@ -35,7 +35,7 @@ const Footer = () => {
       title: 'Tools & Resources',
       links: [
         { name: 'Currency Converter', href: '/currency-converter', icon: ArrowRightLeft },
-        { name: 'Comparison Tool', href: '/comparison-tool', icon: Scale },
+        { name: 'Comparison Tool', href: '/job-comparison-tool', icon: Scale },
         { name: 'Financial Guides', href: '/financial-guides', icon: BookOpen },
       ],
     },

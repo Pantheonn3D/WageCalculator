@@ -1,6 +1,7 @@
+// src/context/RegionContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { countries } from '../data/countries';
-import { currencies } from '../data/currencies';
+import { countries } from '../data/countries'; // Adjust path if needed
+import { currencies } from '../data/currencies'; // Adjust path if needed
 
 const RegionContext = createContext();
 
@@ -13,30 +14,36 @@ export const useRegion = () => {
 };
 
 export const RegionProvider = ({ children }) => {
-  const [selectedCountry, setSelectedCountry] = useState('US');
+  const [selectedCountry, setSelectedCountry] = useState('US'); // Default country
   const [selectedCurrency, setSelectedCurrency] = useState(
     countries[selectedCountry]?.currency || 'USD'
   );
   const [exchangeRates, setExchangeRates] = useState({});
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true); // For location detection
 
   useEffect(() => {
     const detectLocation = async () => {
+      setIsLoadingLocation(true);
       try {
-        // For local development, you might need a CORS proxy if ipapi.co blocks localhost
-        // Example: const proxyUrl = 'YOUR_CORS_PROXY_URL_HERE/';
-        // const response = await fetch(`${proxyUrl}https://ipapi.co/json/`);
+        // Note: ipapi.co might be rate-limited or have CORS issues for client-side calls.
+        // Consider a server-side proxy or a more robust solution for production.
         const response = await fetch('https://ipapi.co/json/');
-        if (!response.ok) throw new Error('Failed to fetch location');
+        if (!response.ok) throw new Error(`Failed to fetch location: ${response.status}`);
         const data = await response.json();
         if (data.country_code && countries[data.country_code]) {
           setSelectedCountry(data.country_code);
+        } else {
+          console.warn(`Detected country_code '${data.country_code}' not found in our list, using default.`);
         }
       } catch (error) {
-        console.log('Could not detect location, using default:', error);
+        console.warn('Could not detect location, using default:', error);
+        // Fallback to default 'US' is already set in useState
+      } finally {
+        setIsLoadingLocation(false);
       }
     };
     detectLocation();
-  }, []);
+  }, []); // Run once on mount
 
   useEffect(() => {
     const countryData = countries[selectedCountry];
@@ -44,143 +51,109 @@ export const RegionProvider = ({ children }) => {
       setSelectedCurrency(countryData.currency);
     } else {
       console.warn(
-        `Currency for country ${selectedCountry} not found or not fully defined. Falling back or using previous.`
+        `Currency for country ${selectedCountry} ('${countryData?.currency}') not found or not fully defined. Falling back to USD.`
       );
-      if (!currencies[selectedCurrency]) {
-         setSelectedCurrency('USD');
-      }
+      setSelectedCurrency('USD'); // Fallback currency
     }
-  }, [selectedCountry]);
+  }, [selectedCountry]); // Update currency when country changes
 
-useEffect(() => {
+  useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
-        const response = await fetch(
-          `https://api.exchangerate-api.com/v4/latest/USD` // Consider using a more robust API or your own backend for rates
-        );
+        // Using a free, simple API for demonstration. For production, use a reliable, keyed API.
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/USD`);
         if (!response.ok) throw new Error('Failed to fetch exchange rates');
         const data = await response.json();
-        setExchangeRates(data.rates);
-      } catch (error) { // <<<--- ADDED { HERE
-        console.log('Could not fetch exchange rates:', error);
-      } // <<<--- ADDED } HERE
+        if (data && data.rates) {
+          setExchangeRates(data.rates);
+        } else {
+          throw new Error('Exchange rate data is invalid');
+        }
+      } catch (error) { // Fixed the missing curly braces here
+        console.error('Could not fetch exchange rates:', error); // Changed to console.error
+        // Potentially set a flag or default rates if fetching fails
+      }
     };
     fetchExchangeRates();
-  }, []);
+  }, []); // Run once on mount
 
   const convertCurrency = (amount, fromCurrency, toCurrency) => {
     if (fromCurrency === toCurrency) return amount;
     if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
-      console.warn('Exchange rate missing for conversion', fromCurrency, toCurrency);
-      return amount; // Or handle more gracefully, maybe return null or throw error
+      console.warn('Exchange rate missing for conversion:', fromCurrency, 'to', toCurrency);
+      return amount; // Or handle more gracefully
     }
-
-    const amountInUSD =
-      fromCurrency === 'USD' ? amount : amount / exchangeRates[fromCurrency];
-    
-    if (toCurrency === 'USD') {
-      return amountInUSD;
-    }
-    return amountInUSD * exchangeRates[toCurrency];
+    const amountInUSD = fromCurrency === 'USD' ? amount : amount / exchangeRates[fromCurrency];
+    return toCurrency === 'USD' ? amountInUSD : amountInUSD * exchangeRates[toCurrency];
   };
 
   const formatCurrency = (amount, currencyCodeOverride, options = {}) => {
-    const currencyToUse = currencyCodeOverride || selectedCurrency;
-
+    const currencyToUse = currencyCodeOverride || selectedCurrency || 'USD'; // Ensure fallback
+  
     if (typeof amount !== 'number' || isNaN(amount)) {
-      return options.defaultValue || ''; // Return empty string or a default placeholder
+      return options.defaultValue !== undefined ? options.defaultValue : ''; 
     }
-
+  
     const currencyInfo = currencies[currencyToUse];
-
-    let defaultMinDecimals = 2;
-    let defaultMaxDecimals = 2;
-
-    if (currencyInfo && currencyInfo.decimals !== undefined) {
-      defaultMinDecimals = currencyInfo.decimals;
-      defaultMaxDecimals = currencyInfo.decimals;
-    } else if (!currencyInfo) {
-      // Fallback if currency info is completely missing
-      console.warn(`Currency info not found for ${currencyToUse}. Using default formatting.`);
-      // No specific currency info, so a basic number format might be better or just toFixed
-    }
-
+  
+    let defaultMinDecimals = currencyInfo?.decimals !== undefined ? currencyInfo.decimals : 2;
+    let defaultMaxDecimals = currencyInfo?.decimals !== undefined ? currencyInfo.decimals : 2;
+  
     let minDecimals = defaultMinDecimals;
     let maxDecimals = defaultMaxDecimals;
-
-    // Option: Smart decimals based on magnitude
+  
     if (options.smartDecimals) {
-      if (options.notation === 'compact') { // Compact notation often handles decimals well itself or via significantDigits
-        // For compact, let significantDigits control precision primarily
-        minDecimals = 0; // Usually compact handles this
-        maxDecimals = 2; // Max for compact if not using significantDigits
-      } else if (Math.abs(amount) >= 1000000) {
+      if (options.notation === 'compact') {
+        minDecimals = 0; 
+        maxDecimals = 2;
+      } else if (Number.isInteger(amount) && Math.abs(amount) >= 1000) { // Show no decimals for large integers
         minDecimals = 0;
         maxDecimals = 0;
-      } else if (Math.abs(amount) >= 1000) {
-        minDecimals = Number.isInteger(amount) ? 0 : defaultMinDecimals;
+      } else if (Math.abs(amount) >= 1000) { // For large non-integers, use default decimals unless overridden
+        minDecimals = defaultMinDecimals; 
         maxDecimals = defaultMaxDecimals;
-      } else {
+      } else { // For smaller numbers, use default decimals
         minDecimals = defaultMinDecimals;
         maxDecimals = defaultMaxDecimals;
       }
     }
-
-    // Option: Force specific number of decimals (overrides smartDecimals for min/max)
+  
     if (options.forceDecimals !== undefined) {
       minDecimals = options.forceDecimals;
       maxDecimals = options.forceDecimals;
     }
     
-    // Ensure minDecimals is not greater than maxDecimals after adjustments
-    if (minDecimals > maxDecimals && options.notation !== 'compact') { // Compact notation uses significantDigits
+    if (minDecimals > maxDecimals && options.notation !== 'compact') {
         minDecimals = maxDecimals;
     }
-
-
+  
     const numberFormatOptions = {
       style: 'currency',
       currency: currencyToUse,
       minimumFractionDigits: minDecimals,
       maximumFractionDigits: maxDecimals,
+      currencyDisplay: currencyInfo?.currencyDisplay || 'symbol', // Use symbol by default
     };
-
+  
     if (options.notation === 'compact') {
       numberFormatOptions.notation = 'compact';
-      // For compact notation, it's often better to control precision with significantDigits
-      // Remove min/maxFractionDigits if using significantDigits for compact
       delete numberFormatOptions.minimumFractionDigits;
       delete numberFormatOptions.maximumFractionDigits;
       numberFormatOptions.minimumSignificantDigits = options.minimumSignificantDigits || 1;
-      numberFormatOptions.maximumSignificantDigits = options.maximumSignificantDigits || (Math.abs(amount) < 1000 && Math.abs(amount) !== 0 ? 3 : 2);
+      // Adjust max significant digits for better compact display
+      numberFormatOptions.maximumSignificantDigits = options.maximumSignificantDigits || (Math.abs(amount) >= 1000 ? 2 : 3);
     }
 
-
-    if (!currencyInfo) {
-      // If currency info is truly missing, we can't use style: 'currency'.
-      // Fallback to a number format or a simple toFixed with the currency code.
-      try {
-        // Attempt to format as a number if currency is unknown to Intl
-        return new Intl.NumberFormat(navigator.language, { 
-            minimumFractionDigits: minDecimals, 
-            maximumFractionDigits: maxDecimals,
-            ...(options.notation === 'compact' && {
-                notation: 'compact',
-                minimumSignificantDigits: numberFormatOptions.minimumSignificantDigits,
-                maximumSignificantDigits: numberFormatOptions.maximumSignificantDigits
-            })
-        }).format(amount) + ` ${currencyToUse}`; // Append currency code manually
-      } catch (e) {
-        return `${currencyToUse} ${amount.toFixed(defaultMinDecimals)}`; // Absolute fallback
-      }
-    }
-    
+    const locale = currencyInfo?.locale || navigator.language || 'en-US'; // Fallback locale
+  
     try {
-      return new Intl.NumberFormat(currencyInfo.locale || navigator.language, numberFormatOptions).format(amount);
+      return new Intl.NumberFormat(locale, numberFormatOptions).format(amount);
     } catch (error) {
-      console.error('Error formatting currency:', error, { amount, currencyToUse, locale: currencyInfo.locale, options: numberFormatOptions });
-      // Fallback if Intl.NumberFormat fails (e.g., unsupported currency code with specific locale)
-      return `${currencyToUse} ${amount.toFixed(defaultMinDecimals)}`;
+      console.error('Error formatting currency:', error, { amount, currencyToUse, locale, options: numberFormatOptions });
+      // Fallback for unsupported currency code or locale issues
+      const symbol = currencyInfo?.symbol || currencyToUse;
+      const formattedAmount = amount.toFixed(defaultMinDecimals);
+      return currencyInfo?.symbolPosition === 'after' ? `${formattedAmount}${symbol}` : `${symbol}${formattedAmount}`;
     }
   };
 
@@ -188,12 +161,12 @@ useEffect(() => {
     selectedCountry,
     setSelectedCountry,
     selectedCurrency,
-    // setSelectedCurrency, // Only expose if direct setting is needed; usually derived from selectedCountry
     exchangeRates,
     convertCurrency,
     formatCurrency,
     countries,
     currencies,
+    isLoadingLocation,
   };
 
   return (

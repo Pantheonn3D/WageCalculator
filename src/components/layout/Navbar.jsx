@@ -45,7 +45,7 @@ const Navbar = () => {
     { name: 'Retirement Calculator', href: '/retirement-calculator', icon: Briefcase, id: 'nav-retirement' }, // Using Briefcase here
     // --- END ADDITION ---
     { name: 'Currency Converter', href: '/currency-converter', icon: ArrowRightLeft, id: 'nav-currency' },
-    { name: 'Comparison Tool', href: '/comparison-tool', icon: Scale, id: 'nav-comparison' },
+    { name: 'Comparison Tool', href: '/job-comparison-tool', icon: Scale, id: 'nav-comparison' },
     { name: 'Financial Guides', href: '/financial-guides', icon: BookOpen, id: 'nav-guides' },
   ];
   // --- END MODIFIED navigation ARRAY ---

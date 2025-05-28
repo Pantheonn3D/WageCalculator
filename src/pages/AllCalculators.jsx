@@ -79,7 +79,7 @@ const allCalculatorsData = [
     title: 'Job Offer Comparison',
     description: 'Compare multiple job offers and find the best option.',
     icon: Scale, // From ComparisonTool.jsx
-    href: '/comparison-tool',
+    href: '/job-comparison-tool',
     color: 'bg-cyan-500',
   },
   // Assuming Retirement Calculator is also a page you have or plan to have:

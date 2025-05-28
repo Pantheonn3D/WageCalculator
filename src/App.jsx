@@ -1,126 +1,151 @@
-// app.jsx
+// src/App.jsx
 
-import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom'; // Removed BrowserRouter as Router, assuming it's in index.js or main.jsx
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, Suspense } from 'react';
+// REMOVED: BrowserRouter as Router from react-router-dom, as it's expected in main.jsx
+import { Routes, Route, useLocation } from 'react-router-dom'; 
+import { AnimatePresence } from 'framer-motion';
 import ReactGA from 'react-ga4';
 
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
-import HomePage from './pages/HomePage';
-import RouteChangeTracker from './components/RouteChangeTracker';
-import ScrollToTop from './utils/ScrollToTop';
-import SalaryCalculator from './pages/SalaryCalculator';
-import HourlyCalculator from './pages/HourlyCalculator';
-import TaxCalculator from './pages/TaxCalculator';
-import SavingsCalculator from './pages/SavingsCalculator';
-import LoanCalculator from './pages/LoanCalculator';
-import RetirementCalculator from './pages/RetirementCalculator';
-import CurrencyConverter from './pages/CurrencyConverter';
-import ComparisonTool from './pages/ComparisonTool';
-import FinancialGuides from './pages/FinancialGuides';
-import GuideDetailPage from './pages/GuideDetailPage';
-import AllCalculators from './pages/AllCalculators';
+// Context
 import { RegionProvider } from './context/RegionContext';
 
-// Import Legal Pages
-import CookiePolicyPage from './pages/legal/CookiePolicyPage';
-import DisclaimerPage from './pages/legal/DisclaimerPage';
-import PrivacyPolicyPage from './pages/legal/PrivacyPolicyPage';
-import TermsOfServicePage from './pages/legal/TermsOfServicePage';
+// Layout Components
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
 
-// --- GA CONFIGURATION ---
-let gaMeasurementId;
-const hardcodedGaId = "G-3B9E8XGDPP";
-const placeholderGaId = "G-XXXXXXXXXX";
+// Core App Components & Utilities
+import RouteChangeTracker from './components/RouteChangeTracker';
+import ScrollToTop from './utils/ScrollToTop';
 
-if (typeof import.meta !== 'undefined' && import.meta.env) {
-  gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+// --- Page Components (Lazy Loaded) ---
+const HomePage = React.lazy(() => import('./pages/HomePage'));
+const SalaryCalculator = React.lazy(() => import('./pages/SalaryCalculator'));
+const HourlyCalculator = React.lazy(() => import('./pages/HourlyCalculator'));
+const TaxCalculator = React.lazy(() => import('./pages/TaxCalculator'));
+const SavingsCalculator = React.lazy(() => import('./pages/SavingsCalculator'));
+const LoanCalculator = React.lazy(() => import('./pages/LoanCalculator'));
+const RetirementCalculator = React.lazy(() => import('./pages/RetirementCalculator'));
+const CurrencyConverter = React.lazy(() => import('./pages/CurrencyConverter'));
+const ComparisonTool = React.lazy(() => import('./pages/ComparisonTool'));
+const AllCalculators = React.lazy(() => import('./pages/AllCalculators'));
+const FinancialGuides = React.lazy(() => import('./pages/FinancialGuides'));
+const GuideDetailPage = React.lazy(() => import('./pages/GuideDetailPage'));
+
+// --- Legal Page Components (Lazy Loaded) ---
+const CookiePolicyPage = React.lazy(() => import('./pages/legal/CookiePolicyPage'));
+const DisclaimerPage = React.lazy(() => import('./pages/legal/DisclaimerPage'));
+const PrivacyPolicyPage = React.lazy(() => import('./pages/legal/PrivacyPolicyPage'));
+const TermsOfServicePage = React.lazy(() => import('./pages/legal/TermsOfServicePage'));
+
+// --- Example NotFoundPage (Lazy Loaded) ---
+// const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
+
+
+// --- GA CONFIGURATION CONSTANTS ---
+const HARDCODED_GA_ID = "G-3B9E8XGDPP";
+const PLACEHOLDER_GA_ID = "G-XXXXXXXXXX";
+const INVALID_GA_ID_PREFIX = "G-XXX";
+
+// --- GA HELPER FUNCTIONS ---
+function getEffectiveGaId() {
+  let id = (typeof import.meta !== 'undefined' && import.meta.env)
+    ? import.meta.env.VITE_GA_MEASUREMENT_ID
+    : undefined;
+
+  if (!id) {
+    console.warn(
+      `VITE_GA_MEASUREMENT_ID is not defined in environment variables. Falling back to hardcoded GA ID: ${HARDCODED_GA_ID}. For production, ensure VITE_GA_MEASUREMENT_ID is properly set.`
+    );
+    id = HARDCODED_GA_ID;
+  }
+  return id;
 }
 
-if (!gaMeasurementId) {
-  gaMeasurementId = hardcodedGaId;
+function isValidGaId(id) {
+  if (!id || id === PLACEHOLDER_GA_ID || id.startsWith(INVALID_GA_ID_PREFIX)) {
+    return false;
+  }
+  return true;
 }
 
-function AppRoutes() {
+const effectiveGaMeasurementId = getEffectiveGaId();
+
+function AnimatedRoutes() {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
+    <>
       <ScrollToTop />
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/salary-calculator" element={<SalaryCalculator />} />
-        <Route path="/hourly-calculator" element={<HourlyCalculator />} />
-        <Route path="/tax-calculator" element={<TaxCalculator />} />
-        <Route path="/savings-calculator" element={<SavingsCalculator />} />
-        <Route path="/loan-calculator" element={<LoanCalculator />} />
-        <Route
-          path="/retirement-calculator"
-          element={<RetirementCalculator />}
-        />
-        <Route path="/all-calculators" element={<AllCalculators />} />
-        <Route path="/currency-converter" element={<CurrencyConverter />} />
-        <Route path="/comparison-tool" element={<ComparisonTool />} />
-        <Route path="/financial-guides" element={<FinancialGuides />} />
-        {/* 
-          ***********************************
-          *** THIS IS THE IMPORTANT CHANGE ***
-          ***********************************
-        */}
-        <Route path="/financial-guides/:guideSlug" element={<GuideDetailPage />} />
-        {/* 
-          ***********************************
-          ***********************************
-        */}
-        <Route path="/cookies" element={<CookiePolicyPage />} />
-        <Route path="/disclaimer" element={<DisclaimerPage />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/terms" element={<TermsOfServicePage />} />
-      </Routes>
-    </AnimatePresence>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/salary-calculator" element={<SalaryCalculator />} />
+          <Route path="/hourly-calculator" element={<HourlyCalculator />} />
+          <Route path="/tax-calculator" element={<TaxCalculator />} />
+          <Route path="/savings-calculator" element={<SavingsCalculator />} />
+          <Route path="/loan-calculator" element={<LoanCalculator />} />
+          <Route path="/retirement-calculator" element={<RetirementCalculator />} />
+          <Route path="/all-calculators" element={<AllCalculators />} />
+          <Route path="/currency-converter" element={<CurrencyConverter />} />
+          <Route path="/job-comparison-tool" element={<ComparisonTool />} />
+          <Route path="/financial-guides" element={<FinancialGuides />} />
+          <Route path="/financial-guides/:guideSlug" element={<GuideDetailPage />} />
+          
+          <Route path="/cookies" element={<CookiePolicyPage />} />
+          <Route path="/disclaimer" element={<DisclaimerPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          
+          {/* <Route path="*" element={<NotFoundPage />} /> */}
+        </Routes>
+      </AnimatePresence>
+    </>
   );
 }
+
+const PageLoader = () => (
+  <div className="flex-grow flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-t-4 border-b-4 border-primary-500 dark:border-primary-400"></div>
+  </div>
+);
 
 function App() {
   const [gaInitialized, setGaInitialized] = useState(false);
 
   useEffect(() => {
-    if (gaMeasurementId && gaMeasurementId !== placeholderGaId && !gaMeasurementId.startsWith("G-XXX")) {
+    if (isValidGaId(effectiveGaMeasurementId)) {
       try {
-        ReactGA.initialize(gaMeasurementId, {
-          // testMode: (typeof import.meta !== 'undefined' && import.meta.env.DEV)
+        ReactGA.initialize(effectiveGaMeasurementId, {
+          testMode: (typeof import.meta !== 'undefined' && import.meta.env.DEV),
         });
-        console.log(`GA Initialized with Measurement ID: ${gaMeasurementId}`);
+        console.log(`GA Initialized with Measurement ID: ${effectiveGaMeasurementId}`);
         setGaInitialized(true);
       } catch (error) {
         console.error("GA Initialization failed:", error);
         setGaInitialized(false);
       }
     } else {
-      if (!gaMeasurementId || gaMeasurementId === placeholderGaId || (gaMeasurementId && gaMeasurementId.startsWith("G-XXX"))) {
-        console.warn(`GA Measurement ID is either not defined, a placeholder, or invalid ('${gaMeasurementId}'). Analytics will not be initialized.`);
-      }
+      console.warn(
+        `GA Measurement ID ('${effectiveGaMeasurementId}') is invalid, a placeholder, or does not meet criteria. Analytics will not be initialized.`
+      );
       setGaInitialized(false);
     }
   }, []);
 
   return (
-    // BrowserRouter (or Router) should wrap this App component,
-    // typically in your main.jsx or index.js file.
-    // If it's not there, you would need to add <Router> here.
-    // Example: import { BrowserRouter as Router } from 'react-router-dom';
-    // and then wrap <RegionProvider> with <Router>.
-    // But usually, it's done at the root of the application.
-    <RegionProvider>
-      {gaInitialized && <RouteChangeTracker />}
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar />
-        <main className="flex-grow">
-          <AppRoutes /> {/* This component contains your Routes */}
-        </main>
-        <Footer />
-      </div>
-    </RegionProvider>
+    // <Router>  <--- REMOVED THIS WRAPPER
+      <RegionProvider>
+        {gaInitialized && <RouteChangeTracker />}
+        <div className="min-h-screen flex flex-col bg-subtle-gradient-light dark:bg-subtle-gradient-dark text-neutral-800 dark:text-neutral-200 selection:bg-primary-500 selection:text-white">
+          <Navbar />
+          <main className="flex-grow w-full">
+            <Suspense fallback={<PageLoader />}>
+              <AnimatedRoutes />
+            </Suspense>
+          </main>
+          <Footer />
+        </div>
+      </RegionProvider>
+    // </Router> <--- REMOVED THIS WRAPPER
   );
 }
 

@@ -1,130 +1,134 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { useRegion } from '../../context/RegionContext'
+import React from 'react';
+import { motion } from 'framer-motion';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useRegion } from '../../context/RegionContext'; // Assuming this path is correct
 
-const TaxChart = ({ results }) => {
-  const { formatCurrency } = useRegion()
+const TaxChart = ({ results, countryCurrency }) => { // Added countryCurrency prop
+  const { formatCurrency: contextFormatCurrency } = useRegion();
+  const formatCurrency = contextFormatCurrency;
 
-  if (!results) return null
+  if (!results) return null;
+
+  // Defensive access
+  const grossIncome = results.income?.gross || 0;
+  const netIncome = results.income?.net || 0;
+  const federalTax = results.taxes?.federalTax || 0;
+  const stateTax = results.taxes?.stateTax || 0;
+  const socialSecurity = results.taxes?.socialSecurity || 0;
+  const medicare = results.taxes?.medicare || 0;
+  const otherTaxes = results.taxes?.other || 0;
+  const taxableIncome = results.income?.taxable || 0;
+  const totalTaxVal = results.taxes?.totalTax || 0;
 
   const pieData = [
-    { name: 'Net Income', value: results.income.net, color: '#22c55e' },
-    { name: 'Federal Tax', value: results.breakdown.federalTax, color: '#ef4444' },
-    { name: 'State/Provincial Tax', value: results.breakdown.stateTax, color: '#f97316' },
-    { name: 'Social Security', value: results.breakdown.socialSecurity, color: '#8b5cf6' },
-    { name: 'Medicare/Health', value: results.breakdown.medicare, color: '#06b6d4' },
-    { name: 'Other Taxes', value: results.breakdown.otherTaxes, color: '#6b7280' }
-  ].filter(item => item.value > 0)
+    { name: 'Net Income', value: netIncome, color: '#22c55e' }, // Green
+    { name: 'Federal Tax', value: federalTax, color: '#ef4444' }, // Red
+    { name: 'State/Prov. Tax', value: stateTax, color: '#f97316' }, // Orange
+    { name: 'Social Security', value: socialSecurity, color: '#8b5cf6' }, // Purple
+    { name: 'Medicare/Health', value: medicare, color: '#3b82f6' }, // Blue
+    { name: 'Other Taxes', value: otherTaxes, color: '#6b7280' } // Gray
+  ].filter(item => typeof item.value === 'number' && item.value > 0);
 
   const comparisonData = [
-    { category: 'Gross Income', amount: results.income.gross },
-    { category: 'Taxable Income', amount: results.income.taxable },
-    { category: 'Total Taxes', amount: results.taxes.totalTax },
-    { category: 'Net Income', amount: results.income.net }
-  ]
+    { category: 'Gross Inc.', amount: grossIncome, fill: '#10b981' }, // Emerald
+    { category: 'Taxable Inc.', amount: taxableIncome, fill: '#f59e0b' }, // Amber
+    { category: 'Total Taxes', amount: totalTaxVal, fill: '#ef4444' },   // Red
+    { category: 'Net Inc.', amount: netIncome, fill: '#22c55e' }    // Green
+  ];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm" style={{ color: payload[0].color }}>
-            {formatCurrency(payload[0].value)}
+        <div className="bg-white dark:bg-neutral-700 p-3 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg text-gray-900 dark:text-white">
+          <p className="font-medium">{payload[0].payload.category || label}</p> {/* Use category from payload if available */}
+          <p className="text-sm" style={{ color: payload[0].payload.fill || payload[0].color }}>
+            {formatCurrency(payload[0].value, countryCurrency)}
           </p>
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
   const PieTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
-      const data = payload[0]
+      const data = payload[0];
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <div className="bg-white dark:bg-neutral-700 p-3 border border-gray-200 dark:border-neutral-600 rounded-lg shadow-lg text-gray-900 dark:text-white">
           <p className="font-medium">{data.name}</p>
           <p style={{ color: data.payload.color }} className="text-sm">
-            {formatCurrency(data.value)}
+            {formatCurrency(data.value, countryCurrency)}
           </p>
-          <p className="text-xs text-gray-500">
-            {((data.value / results.income.gross) * 100).toFixed(1)}% of gross
-          </p>
+          {grossIncome > 0 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {((data.value / grossIncome) * 100).toFixed(1)}% of gross
+            </p>
+          )}
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
+
+  const cardBaseClass = "bg-white dark:bg-neutral-800 shadow-xl rounded-lg p-6";
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Income Distribution Pie Chart */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="calculator-card"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Income Distribution</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={80}
-                paddingAngle={2}
-                dataKey="value"
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip content={<PieTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          {pieData.map((item, index) => (
-            <div key={item.name} className="flex items-center space-x-2">
-              <div 
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-xs text-gray-600 truncate">{item.name}</span>
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.0 }} className={cardBaseClass}>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b dark:border-neutral-700 pb-2">Income Distribution</h3>
+        {pieData.length > 0 ? (
+        <>
+            <div className="h-64 md:h-72"> {/* Increased height slightly */}
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius="45%" outerRadius="80%" dataKey="value" labelLine={false} 
+                    // label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`} // Optional: direct labels
+                >
+                    {pieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} /> ))}
+                </Pie>
+                <Tooltip content={<PieTooltip />} />
+                {/* <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" /> */}
+                </PieChart>
+            </ResponsiveContainer>
             </div>
-          ))}
-        </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mt-4 text-xs">
+            {pieData.map((item) => (
+                <div key={item.name} className="flex items-center space-x-1.5">
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }}/>
+                <span className="text-gray-600 dark:text-gray-400 truncate">{item.name}</span>
+                </div>
+            ))}
+            </div>
+        </>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400 h-64 md:h-72 flex items-center justify-center">Not enough data for pie chart.</p>
+        )}
       </motion.div>
 
-      {/* Income Comparison Bar Chart */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="calculator-card"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Income Comparison</h3>
-        <div className="h-64">
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }} className={cardBaseClass}>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b dark:border-neutral-700 pb-2">Income vs. Taxes Comparison</h3>
+        {comparisonData.some(d => d.amount > 0) ? (
+        <div className="h-64 md:h-72 mt-6"> {/* Added mt-6 for better spacing with title */}
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={comparisonData} layout="horizontal">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" tickFormatter={(value) => formatCurrency(value).replace(/\.\d+/, '')} />
-              <YAxis type="category" dataKey="category" width={100} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar 
-                dataKey="amount" 
-                fill="#0ea5e9" 
-                radius={[0, 4, 4, 0]}
-              />
+            <BarChart data={comparisonData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+              <XAxis type="number" tickFormatter={(value) => formatCurrency(value, countryCurrency, { notation: 'compact', maximumSignificantDigits: 2})} stroke="#9ca3af" /> {/* Gray axis */}
+              <YAxis type="category" dataKey="category" width={85} tick={{ fontSize: 11 }} stroke="#9ca3af" /> {/* Gray axis */}
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(209, 213, 219, 0.3)' }} />
+              <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
+                {comparisonData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400 h-64 md:h-72 flex items-center justify-center">Not enough data for bar chart.</p>
+        )}
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default TaxChart
+export default TaxChart;
