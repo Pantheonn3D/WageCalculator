@@ -92,7 +92,7 @@ const HomePage = () => {
     return () => clearInterval(countryIntervalId);
   }, [countries, staticCountryName]); 
 
-  const pageTitle = `Master Your Finances in ${staticCountryName} | WageCalculator`;
+  const pageTitle = `Best finance calculators for all countries | WageCalculator`;
   const pageDescription = `Dynamically master your ${DYNAMIC_WORDS.join(', ').toLowerCase()} in ${staticCountryName}. Free financial calculators for salary, tax, savings, and loans worldwide.`;
   
   const calculators = useMemo(() => [
